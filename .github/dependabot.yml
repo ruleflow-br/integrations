@@ -1,0 +1,19 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+
+  - package-ecosystem: "npm"
+    directory: "/examples/node"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+
+  - package-ecosystem: "gomod"
+    directory: "/examples/go"
+    schedule:
+      interval: "weekly"
+      day: "monday"

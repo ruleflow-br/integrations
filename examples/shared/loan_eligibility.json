@@ -1,0 +1,95 @@
+{
+  "model_version": "0.1.0",
+  "schemas": [
+    {
+      "id": "applicant",
+      "name": "Applicant",
+      "fields": [
+        { "name": "credit_score", "type": { "kind": "integer" }, "required": true },
+        { "name": "income", "type": { "kind": "number" }, "required": true },
+        { "name": "age", "type": { "kind": "integer" }, "required": true }
+      ]
+    }
+  ],
+  "decisions": [
+    {
+      "id": "loan_eligibility",
+      "name": "Loan eligibility",
+      "inputs": [
+        { "name": "credit_score", "type": { "kind": "integer" }, "required": true },
+        { "name": "income", "type": { "kind": "number" }, "required": true },
+        { "name": "age", "type": { "kind": "integer" }, "required": true }
+      ],
+      "outputs": [
+        { "name": "risk_tier", "type": { "kind": "string" } },
+        { "name": "approved", "type": { "kind": "boolean" } },
+        { "name": "credit_limit", "type": { "kind": "number" } }
+      ],
+      "nodes": [
+        {
+          "type": "decision_table",
+          "id": "risk",
+          "hit_policy": "first",
+          "inputs": [{ "expr": "credit_score" }, { "expr": "income" }],
+          "outputs": [{ "name": "risk_tier" }],
+          "rules": [
+            { "id": "r1", "when": ["[750..850]", ">= 50000"], "then": [{ "value": "LOW" }] },
+            { "id": "r2", "when": [">= 650", ">= 30000"], "then": [{ "value": "MEDIUM" }] },
+            { "id": "r3", "when": ["-", "-"], "then": [{ "value": "HIGH" }] }
+          ]
+        },
+        {
+          "type": "expression",
+          "id": "base",
+          "output": "base_limit",
+          "expr": "income * 0.3"
+        },
+        {
+          "type": "switch",
+          "id": "decide",
+          "output": "approved",
+          "cases": [
+            { "when": "risk_tier = \"LOW\"", "then": { "value": true } },
+            { "when": "risk_tier = \"MEDIUM\" and age >= 21", "then": { "value": true } }
+          ],
+          "default": { "value": false }
+        },
+        {
+          "type": "output",
+          "id": "out",
+          "bindings": [
+            { "output": "risk_tier", "value": { "expr": "risk_tier" } },
+            { "output": "approved", "value": { "expr": "approved" } },
+            { "output": "credit_limit", "value": { "expr": "if(approved, base_limit, 0)" } }
+          ]
+        }
+      ],
+      "tests": [
+        {
+          "name": "prime applicant is low risk and approved",
+          "given": { "credit_score": 780, "income": 80000, "age": 40 },
+          "expect": { "risk_tier": "LOW", "approved": true, "credit_limit": 24000 }
+        },
+        {
+          "name": "medium risk under 21 is rejected",
+          "given": { "credit_score": 700, "income": 40000, "age": 19 },
+          "expect": { "risk_tier": "MEDIUM", "approved": false, "credit_limit": 0 }
+        },
+        {
+          "name": "medium risk over 21 is approved",
+          "given": { "credit_score": 700, "income": 40000, "age": 30 },
+          "expect": { "risk_tier": "MEDIUM", "approved": true, "credit_limit": 12000 }
+        },
+        {
+          "name": "low score falls through to high risk",
+          "given": { "credit_score": 500, "income": 10000, "age": 35 },
+          "expect": { "risk_tier": "HIGH", "approved": false, "credit_limit": 0 }
+        }
+      ]
+    }
+  ],
+  "test_suites": [],
+  "workflows": [],
+  "environments": [],
+  "releases": []
+}

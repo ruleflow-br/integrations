@@ -1,0 +1,14 @@
+{
+  "name": "ruleflow-example-node",
+  "version": "1.0.0",
+  "description": "RuleFlow integration example — Node.js, native fetch, no dependencies.",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.mjs"
+  },
+  "license": "Apache-2.0"
+}

@@ -1,0 +1,72 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  baseline:
+    name: repository baseline
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: README present
+        run: test -s README.md && echo "baseline OK"
+      - name: validate shared fixtures (jq)
+        run: |
+          for f in examples/shared/*.json; do
+            echo "checking $f"
+            jq empty "$f"
+          done
+          echo "shared fixtures OK"
+
+  python:
+    name: python (compile check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: py_compile examples/python/main.py
+        run: python -m py_compile examples/python/main.py
+
+  node:
+    name: node (syntax check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: node --check examples/node/index.mjs
+        run: node --check examples/node/index.mjs
+
+  go:
+    name: go (fmt + vet)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
+      - name: gofmt
+        run: |
+          cd examples/go
+          fmt_out="$(gofmt -l .)"
+          if [ -n "$fmt_out" ]; then
+            echo "gofmt found unformatted files:"
+            echo "$fmt_out"
+            exit 1
+          fi
+      - name: go vet
+        run: cd examples/go && go vet ./...
+
+  curl:
+    name: curl script (syntax check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: bash -n examples/curl/run.sh
+        run: bash -n examples/curl/run.sh

@@ -1,0 +1,11 @@
+node_modules/
+*.log
+.env
+.DS_Store
+__pycache__/
+*.pyc
+
+# Go build junk
+*.exe
+*.test
+*.out
