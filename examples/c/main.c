@@ -155,6 +155,9 @@ static struct buffer http_request(CURL *curl, const char *url, const char *metho
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_cb);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buf);
+    /* libcurl sends no User-Agent by default; some WAFs/CDNs block requests
+     * without one, so set an explicit UA. */
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "ruleflow-integrations-example/1.0 (libcurl)");
 
     struct curl_slist *headers = NULL;
     char auth_header[4096];
