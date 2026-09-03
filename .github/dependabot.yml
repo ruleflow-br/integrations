@@ -23,3 +23,8 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
+    # ureq 3.x is a breaking major that the example is not written for; keep it
+    # on 2.x and still receive minor/patch updates.
+    ignore:
+      - dependency-name: "ureq"
+        update-types: ["version-update:semver-major"]
