@@ -11,5 +11,5 @@ name = "ruleflow-example-rust"
 path = "src/main.rs"
 
 [dependencies]
-ureq = { version = "2", features = ["json"] }
+ureq = { version = "3", features = ["json"] }
 serde_json = "1"
