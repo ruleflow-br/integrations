@@ -9,3 +9,9 @@ __pycache__/
 *.exe
 *.test
 *.out
+
+# Rust build junk
+target/
+
+# C build junk
+examples/c/rf-example

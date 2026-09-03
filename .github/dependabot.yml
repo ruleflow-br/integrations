@@ -17,3 +17,9 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
+
+  - package-ecosystem: "cargo"
+    directory: "/examples/rust"
+    schedule:
+      interval: "weekly"
+      day: "monday"

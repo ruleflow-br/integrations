@@ -54,6 +54,10 @@ Never commit these values. Each example reads them from the environment.
 | Python (stdlib only) | [`examples/python`](examples/python) | `python3 main.py` |
 | Node.js (native `fetch`) | [`examples/node`](examples/node) | `node index.mjs` |
 | Go (stdlib only) | [`examples/go`](examples/go) | `go run main.go` |
+| Rust (`ureq` + `serde_json`) | [`examples/rust`](examples/rust) | `cargo run` |
+| Ruby (stdlib only) | [`examples/ruby`](examples/ruby) | `ruby main.rb` |
+| PHP (built-in cURL extension) | [`examples/php`](examples/php) | `php main.php` |
+| C (libcurl) | [`examples/c`](examples/c) | `make && ./rf-example` |
 | Your language here | [`examples/_template`](examples/_template) | see [CONTRIBUTING.md](CONTRIBUTING.md) |
 
 Each example does the same three things: get a token, call `GET /api/whoami`

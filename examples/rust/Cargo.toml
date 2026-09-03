@@ -1,0 +1,15 @@
+[package]
+name = "ruleflow-example-rust"
+version = "1.0.0"
+edition = "2021"
+publish = false
+license = "Apache-2.0"
+description = "RuleFlow integration example — Rust, ureq + serde_json."
+
+[[bin]]
+name = "ruleflow-example-rust"
+path = "src/main.rs"
+
+[dependencies]
+ureq = { version = "2", features = ["json"] }
+serde_json = "1"

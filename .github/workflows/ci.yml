@@ -70,3 +70,44 @@ jobs:
       - uses: actions/checkout@v7
       - name: bash -n examples/curl/run.sh
         run: bash -n examples/curl/run.sh
+
+  rust:
+    name: rust (build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - name: cargo build --locked
+        run: cd examples/rust && cargo build --locked
+
+  ruby:
+    name: ruby (syntax check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+      - name: ruby -c examples/ruby/main.rb
+        run: ruby -c examples/ruby/main.rb
+
+  php:
+    name: php (lint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+      - name: php -l examples/php/main.php
+        run: php -l examples/php/main.php
+
+  c:
+    name: c (compile check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: install libcurl dev headers
+        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
+      - name: gcc examples/c/main.c -lcurl
+        run: gcc examples/c/main.c -lcurl -o /tmp/rf_c
