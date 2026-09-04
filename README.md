@@ -65,6 +65,10 @@ to confirm the tenant, then run the `loan_eligibility` decision via
 `POST /api/engine/simulate`. A commented block at the end shows the
 next-step calls (stored decisions, workflow executions).
 
+Ready-to-run **decision models** live in [`examples/shared`](examples/shared) —
+credit eligibility plus two health-plan pricing examples (group-contract and
+ANS age-band readjustment). Point any example at a different model to try them.
+
 ## Docs
 
 - Full reference: [docs.ruleflow.com.br](https://docs.ruleflow.com.br)
