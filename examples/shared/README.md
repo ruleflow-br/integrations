@@ -23,3 +23,22 @@ loads — the API call and shapes are identical.
   coefficients that comply with the rule (last band ≤ 6× the first; the
   1st→7th variation ≤ the 7th→10th). Coefficients are illustrative — each
   operator sets its own within the ANS limits.
+
+## Workflow example
+
+`reajuste_beneficiario.json` is a full **project** (both health decisions +
+a workflow) that chains them end to end:
+
+```
+faixa (decision: reajuste_faixa_etaria)
+  → contrato (decision: reajuste_coletivo)
+    → gate (aprovacao_manual == true ?)
+        → aprovacao (human_task: Negociação)  → aplicar
+        → aplicar (service_task: aplicar-reajuste)  → fim
+```
+
+It computes the beneficiary's age-band change and the contract-level
+readjustment, then routes to a human approval step (Negociação) when the
+contract falls into the manual-approval band — otherwise applies directly. The
+workflow compiles to AWS Step Functions; validated live (`/engine/validate` +
+`/engine/compile-workflow`).
