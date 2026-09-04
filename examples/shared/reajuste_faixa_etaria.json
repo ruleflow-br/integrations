@@ -1,0 +1,101 @@
+{
+  "model_version": "0.1.0",
+  "schemas": [
+    {
+      "id": "beneficiario",
+      "name": "Beneficiario",
+      "fields": [
+        { "name": "idade", "type": { "kind": "integer" }, "required": true },
+        { "name": "coeficiente_anterior", "type": { "kind": "number" }, "required": true }
+      ]
+    }
+  ],
+  "decisions": [
+    {
+      "id": "reajuste_faixa_etaria",
+      "name": "Reajuste por faixa etaria (ANS RN 63/2003)",
+      "inputs": [
+        { "name": "idade", "type": { "kind": "integer" }, "required": true },
+        { "name": "coeficiente_anterior", "type": { "kind": "number" }, "required": true }
+      ],
+      "outputs": [
+        { "name": "faixa", "type": { "kind": "string" } },
+        { "name": "coeficiente", "type": { "kind": "number" } },
+        { "name": "mudou_faixa", "type": { "kind": "boolean" } },
+        { "name": "reajuste_faixa_pct", "type": { "kind": "number" } }
+      ],
+      "nodes": [
+        {
+          "type": "decision_table",
+          "id": "classificacao",
+          "hit_policy": "first",
+          "inputs": [{ "expr": "idade" }],
+          "outputs": [{ "name": "faixa" }, { "name": "coeficiente" }],
+          "rules": [
+            { "id": "f1",  "when": ["[0..18]"],   "then": [{ "value": "1 (0-18)" },   { "value": 1.00 }] },
+            { "id": "f2",  "when": ["[19..23]"],  "then": [{ "value": "2 (19-23)" },  { "value": 1.10 }] },
+            { "id": "f3",  "when": ["[24..28]"],  "then": [{ "value": "3 (24-28)" },  { "value": 1.20 }] },
+            { "id": "f4",  "when": ["[29..33]"],  "then": [{ "value": "4 (29-33)" },  { "value": 1.30 }] },
+            { "id": "f5",  "when": ["[34..38]"],  "then": [{ "value": "5 (34-38)" },  { "value": 1.40 }] },
+            { "id": "f6",  "when": ["[39..43]"],  "then": [{ "value": "6 (39-43)" },  { "value": 1.50 }] },
+            { "id": "f7",  "when": ["[44..48]"],  "then": [{ "value": "7 (44-48)" },  { "value": 1.65 }] },
+            { "id": "f8",  "when": ["[49..53]"],  "then": [{ "value": "8 (49-53)" },  { "value": 2.10 }] },
+            { "id": "f9",  "when": ["[54..58]"],  "then": [{ "value": "9 (54-58)" },  { "value": 2.70 }] },
+            { "id": "f10", "when": [">= 59"],     "then": [{ "value": "10 (59+)" },   { "value": 3.30 }] }
+          ]
+        },
+        {
+          "type": "expression",
+          "id": "reaj",
+          "output": "reajuste_calc",
+          "expr": "if(coeficiente > coeficiente_anterior, coeficiente / coeficiente_anterior - 1, 0)"
+        },
+        {
+          "type": "switch",
+          "id": "mud",
+          "output": "mudou_faixa",
+          "cases": [
+            { "when": "coeficiente > coeficiente_anterior", "then": { "value": true } }
+          ],
+          "default": { "value": false }
+        },
+        {
+          "type": "output",
+          "id": "out",
+          "bindings": [
+            { "output": "faixa", "value": { "expr": "faixa" } },
+            { "output": "coeficiente", "value": { "expr": "coeficiente" } },
+            { "output": "mudou_faixa", "value": { "expr": "mudou_faixa" } },
+            { "output": "reajuste_faixa_pct", "value": { "expr": "reajuste_calc" } }
+          ]
+        }
+      ],
+      "tests": [
+        {
+          "name": "crianca na primeira faixa, sem reajuste",
+          "given": { "idade": 10, "coeficiente_anterior": 1.00 },
+          "expect": { "faixa": "1 (0-18)", "coeficiente": 1.00, "mudou_faixa": false, "reajuste_faixa_pct": 0 }
+        },
+        {
+          "name": "entrou na segunda faixa (19-23) vindo da base",
+          "given": { "idade": 19, "coeficiente_anterior": 1.00 },
+          "expect": { "faixa": "2 (19-23)", "coeficiente": 1.10, "mudou_faixa": true, "reajuste_faixa_pct": 0.10 }
+        },
+        {
+          "name": "reprecificacao para a setima faixa (44-48)",
+          "given": { "idade": 45, "coeficiente_anterior": 1.00 },
+          "expect": { "faixa": "7 (44-48)", "coeficiente": 1.65, "mudou_faixa": true, "reajuste_faixa_pct": 0.65 }
+        },
+        {
+          "name": "ja na ultima faixa (59+), sem novo reajuste",
+          "given": { "idade": 59, "coeficiente_anterior": 3.30 },
+          "expect": { "faixa": "10 (59+)", "coeficiente": 3.30, "mudou_faixa": false, "reajuste_faixa_pct": 0 }
+        }
+      ]
+    }
+  ],
+  "test_suites": [],
+  "workflows": [],
+  "environments": [],
+  "releases": []
+}

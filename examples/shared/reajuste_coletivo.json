@@ -1,0 +1,104 @@
+{
+  "model_version": "0.1.0",
+  "schemas": [
+    {
+      "id": "contrato",
+      "name": "Contrato coletivo",
+      "fields": [
+        { "name": "sinistralidade", "type": { "kind": "number" }, "required": true },
+        { "name": "vidas", "type": { "kind": "integer" }, "required": true },
+        { "name": "vcmh", "type": { "kind": "number" }, "required": true },
+        { "name": "meses_desde_ultimo_reajuste", "type": { "kind": "integer" }, "required": true }
+      ]
+    }
+  ],
+  "decisions": [
+    {
+      "id": "reajuste_coletivo",
+      "name": "Reajuste de contrato coletivo",
+      "inputs": [
+        { "name": "sinistralidade", "type": { "kind": "number" }, "required": true },
+        { "name": "vidas", "type": { "kind": "integer" }, "required": true },
+        { "name": "vcmh", "type": { "kind": "number" }, "required": true },
+        { "name": "meses_desde_ultimo_reajuste", "type": { "kind": "integer" }, "required": true }
+      ],
+      "outputs": [
+        { "name": "faixa_risco", "type": { "kind": "string" } },
+        { "name": "reajuste_pct", "type": { "kind": "number" } },
+        { "name": "aprovacao_manual", "type": { "kind": "boolean" } }
+      ],
+      "nodes": [
+        {
+          "type": "decision_table",
+          "id": "faixa",
+          "hit_policy": "first",
+          "inputs": [{ "expr": "sinistralidade" }],
+          "outputs": [{ "name": "faixa_risco" }],
+          "rules": [
+            { "id": "r1", "when": ["<= 0.70"], "then": [{ "value": "EQUILIBRADO" }] },
+            { "id": "r2", "when": ["<= 0.85"], "then": [{ "value": "ATENCAO" }] },
+            { "id": "r3", "when": ["-"], "then": [{ "value": "CRITICO" }] }
+          ]
+        },
+        {
+          "type": "expression",
+          "id": "excedente",
+          "output": "excedente_sinistro",
+          "expr": "if(sinistralidade > 0.70, sinistralidade - 0.70, 0)"
+        },
+        {
+          "type": "expression",
+          "id": "calc",
+          "output": "reajuste_calc",
+          "expr": "vcmh + excedente_sinistro"
+        },
+        {
+          "type": "switch",
+          "id": "alcada",
+          "output": "aprovacao_manual",
+          "cases": [
+            { "when": "meses_desde_ultimo_reajuste < 12", "then": { "value": true } },
+            { "when": "sinistralidade > 1.0", "then": { "value": true } },
+            { "when": "reajuste_calc > 0.25", "then": { "value": true } }
+          ],
+          "default": { "value": false }
+        },
+        {
+          "type": "output",
+          "id": "out",
+          "bindings": [
+            { "output": "faixa_risco", "value": { "expr": "faixa_risco" } },
+            { "output": "reajuste_pct", "value": { "expr": "reajuste_calc" } },
+            { "output": "aprovacao_manual", "value": { "expr": "aprovacao_manual" } }
+          ]
+        }
+      ],
+      "tests": [
+        {
+          "name": "equilibrado, dentro do teto de alcada",
+          "given": { "sinistralidade": 0.65, "vidas": 200, "vcmh": 0.12, "meses_desde_ultimo_reajuste": 12 },
+          "expect": { "faixa_risco": "EQUILIBRADO", "reajuste_pct": 0.12, "aprovacao_manual": false }
+        },
+        {
+          "name": "atencao acima da alcada -> vai para Negociacao",
+          "given": { "sinistralidade": 0.82, "vidas": 150, "vcmh": 0.14, "meses_desde_ultimo_reajuste": 14 },
+          "expect": { "faixa_risco": "ATENCAO", "reajuste_pct": 0.26, "aprovacao_manual": true }
+        },
+        {
+          "name": "contrato deficitario e critico",
+          "given": { "sinistralidade": 1.10, "vidas": 90, "vcmh": 0.15, "meses_desde_ultimo_reajuste": 18 },
+          "expect": { "faixa_risco": "CRITICO", "reajuste_pct": 0.55, "aprovacao_manual": true }
+        },
+        {
+          "name": "dentro da carencia de 12 meses -> revisao manual",
+          "given": { "sinistralidade": 0.60, "vidas": 300, "vcmh": 0.10, "meses_desde_ultimo_reajuste": 8 },
+          "expect": { "faixa_risco": "EQUILIBRADO", "reajuste_pct": 0.10, "aprovacao_manual": true }
+        }
+      ]
+    }
+  ],
+  "test_suites": [],
+  "workflows": [],
+  "environments": [],
+  "releases": []
+}
